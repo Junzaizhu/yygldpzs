@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公卫监管大屏</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 引入Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#0FC6C2',
+            accent: '#722ED1',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            success: '#00B42A',
+            dark: '#0A1123',
+            'dark-light': '#161E35',
+            'text-primary': '#E5E6EB',
+            'text-secondary': '#86909C'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义样式 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .card-shadow {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #0A1123 0%, #161E35 100%);
+      }
+      .animate-pulse-slow {
+        animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .grid-dashboard {
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: auto 1fr 1fr 1fr;
+      }
+      .alert-pulse {
+        animation: alertPulse 2s infinite;
+      }
+      @keyframes alertPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-dark text-text-primary min-h-screen">
+  <!-- 顶部标题栏 -->
+  <header class="py-3 px-6 border-b border-primary/30 flex justify-between items-center">
+    <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-shadow flex items-center">
+      <i class="fa fa-heartbeat text-secondary mr-3"></i>
+      公卫监管大屏
+    </h1>
+    <div class="flex items-center space-x-6">
+      <div class="text-lg" id="current-time">2025-07-23 15:30:00</div>
+      <div class="bg-dark-light px-4 py-2 rounded-lg flex items-center">
+        <div class="w-3 h-3 rounded-full bg-success mr-2 alert-pulse"></div>
+        <span>系统状态: 正常运行中</span>
+      </div>
+      <button class="bg-primary/20 hover:bg-primary/40 transition-all duration-300 px-4 py-2 rounded-lg flex items-center">
+        <i class="fa fa-refresh mr-2"></i>
+        <span>刷新数据</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主要内容区域 -->
+  <main class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- 左侧区域：智能提醒与联动 -->
+    <section class="lg:col-span-1 bg-dark-light rounded-xl p-4 card-shadow flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">智能提醒与联动</h2>
+        <div class="bg-danger/20 px-3 py-1 rounded-full text-sm flex items-center">
+          <span class="mr-1">3</span>
+          <i class="fa fa-bell"></i>
+        </div>
+      </div>
+      
+      <!-- 提醒列表 -->
+      <div class="space-y-3 overflow-y-auto flex-1">
+        <div class="bg-dark p-3 rounded-lg border-l-4 border-danger hover:bg-dark-light/80 transition-all duration-300 cursor-pointer">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-medium">高血压患者随访提醒</h3>
+              <p class="text-text-secondary text-sm mt-1">患者张三，65岁，上次随访时间: 2025-06-15</p>
+            </div>
+            <span class="text-xs bg-danger/20 text-danger px-2 py-1 rounded-full">紧急</span>
+          </div>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="text-xs text-text-secondary">30分钟前</span>
+            <button class="text-primary text-sm">处理</button>
+          </div>
+        </div>
+        
+        <div class="bg-dark p-3 rounded-lg border-l-4 border-warning hover:bg-dark-light/80 transition-all duration-300 cursor-pointer">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-medium">糖尿病患者用药提醒</h3>
+              <p class="text-text-secondary text-sm mt-1">患者李四，52岁，连续3天未按时服药</p>
+            </div>
+            <span class="text-xs bg-warning/20 text-warning px-2 py-1 rounded-full">警告</span>
+          </div>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="text-xs text-text-secondary">2小时前</span>
+            <button class="text-primary text-sm">处理</button>
+          </div>
+        </div>
+        
+        <div class="bg-dark p-3 rounded-lg border-l-4 border-primary hover:bg-dark-light/80 transition-all duration-300 cursor-pointer">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-medium">新慢性病患者信息推送</h3>
+              <p class="text-text-secondary text-sm mt-1">3名高血压患者信息已推送至公卫系统</p>
+            </div>
+            <span class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">信息</span>
+          </div>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="text-xs text-text-secondary">5小时前</span>
+            <button class="text-primary text-sm">查看</button>
+          </div>
+        </div>
+        
+        <div class="bg-dark p-3 rounded-lg border-l-4 border-secondary hover:bg-dark-light/80 transition-all duration-300 cursor-pointer">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-medium">季度公卫报告生成完成</h3>
+              <p class="text-text-secondary text-sm mt-1">第二季度慢性病管理报告已生成</p>
+            </div>
+            <span class="text-xs bg-secondary/20 text-secondary px-2 py-1 rounded-full">完成</span>
+          </div>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="text-xs text-text-secondary">昨天</span>
+            <button class="text-primary text-sm">查看</button>
+          </div>
+        </div>
+        
+        <div class="bg-dark p-3 rounded-lg border-l-4 border-accent hover:bg-dark-light/80 transition-all duration-300 cursor-pointer">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-medium">智能提醒规则更新</h3>
+              <p class="text-text-secondary text-sm mt-1">高血压患者随访间隔规则已更新</p>
+            </div>
+            <span class="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full">更新</span>
+          </div>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="text-xs text-text-secondary">2天前</span>
+            <button class="text-primary text-sm">详情</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 智能提醒统计卡片 -->
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <div class="bg-dark p-3 rounded-lg border border-primary/20">
+          <div class="text-text-secondary text-xs">今日提醒总数</div>
+          <div class="text-2xl font-bold mt-1 text-primary">28</div>
+          <div class="flex items-center text-xs text-text-secondary mt-1">
+            <i class="fa fa-arrow-up text-success mr-1"></i>
+            <span>较昨日 +4</span>
+          </div>
+        </div>
+        <div class="bg-dark p-3 rounded-lg border border-primary/20">
+          <div class="text-text-secondary text-xs">待处理提醒</div>
+          <div class="text-2xl font-bold mt-1 text-warning">12</div>
+          <div class="flex items-center text-xs text-text-secondary mt-1">
+            <i class="fa fa-arrow-down text-success mr-1"></i>
+            <span>较昨日 -3</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 中间区域：慢性病管理 -->
+    <section class="lg:col-span-1 bg-dark-light rounded-xl p-4 card-shadow flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">慢性病管理情况</h2>
+        <div class="bg-primary/20 px-3 py-1 rounded-full text-sm">
+          <i class="fa fa-info-circle mr-1"></i>实时更新
+        </div>
+      </div>
+      
+      <!-- 慢性病趋势图 -->
+      <div class="h-[240px]">
+        <canvas id="chronic-disease-trend-chart"></canvas>
+      </div>
+      
+      <!-- 慢性病分类统计 -->
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <div class="bg-dark p-3 rounded-lg border border-primary/20">
+          <div class="flex justify-between items-center">
+            <span class="text-text-secondary">高血压患者</span>
+            <span class="text-primary font-medium">5,689</span>
+          </div>
+          <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden mt-2">
+            <div class="bg-primary h-full rounded-full" style="width: 65%"></div>
+          </div>
+        </div>
+        <div class="bg-dark p-3 rounded-lg border border-primary/20">
+          <div class="flex justify-between items-center">
+            <span class="text-text-secondary">糖尿病患者</span>
+            <span class="text-secondary font-medium">3,254</span>
+          </div>
+          <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden mt-2">
+            <div class="bg-secondary h-full rounded-full" style="width: 37%"></div>
+          </div>
+        </div>
+        <div class="bg-dark p-3 rounded-lg border border-primary/20">
+          <div class="flex justify-between items-center">
+            <span class="text-text-secondary">冠心病患者</span>
+            <span class="text-accent font-medium">2,145</span>
+          </div>
+          <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden mt-2">
+            <div class="bg-accent h-full rounded-full" style="width: 24%"></div>
+          </div>
+        </div>
+        <div class="bg-dark p-3 rounded-lg border border-primary/20">
+          <div class="flex justify-between items-center">
+            <span class="text-text-secondary">脑血管病患者</span>
+            <span class="text-warning font-medium">1,876</span>
+          </div>
+          <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden mt-2">
+            <div class="bg-warning h-full rounded-full" style="width: 21%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 管理效果评估 -->
+      <div class="mt-4 bg-dark p-4 rounded-lg border border-primary/20">
+        <h3 class="text-lg font-medium mb-3">慢性病管理效果评估</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">血压控制达标率</span>
+              <span class="text-success">82.3%</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-success h-full rounded-full" style="width: 82.3%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">血糖控制达标率</span>
+              <span class="text-success">78.5%</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-success h-full rounded-full" style="width: 78.5%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">规范管理率</span>
+              <span class="text-warning">68.9%</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-warning h-full rounded-full" style="width: 68.9%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">并发症发生率</span>
+              <span class="text-danger">12.7%</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-danger h-full rounded-full" style="width: 12.7%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右侧区域：业务联动与统计 -->
+    <section class="lg:col-span-1 grid grid-rows-2 gap-6">
+      <!-- 业务联动统计 -->
+      <div class="bg-dark-light rounded-xl p-4 card-shadow flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold">业务联动统计</h2>
+          <select class="bg-dark border border-primary/30 rounded-lg text-sm px-3 py-1 text-text-primary">
+            <option>本月</option>
+            <option>上月</option>
+            <option>本季度</option>
+            <option>本年度</option>
+          </select>
+        </div>
+        
+        <!-- 业务联动图表 -->
+        <div class="h-[200px]">
+          <canvas id="business-linkage-chart"></canvas>
+        </div>
+        
+        <!-- 业务联动指标卡片 -->
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <div class="bg-dark p-3 rounded-lg border border-primary/20">
+            <div class="text-text-secondary text-xs">智能提醒推送</div>
+            <div class="text-2xl font-bold mt-1 text-primary">1,256</div>
+            <div class="flex items-center text-xs text-text-secondary mt-1">
+              <i class="fa fa-arrow-up text-success mr-1"></i>
+              <span>12.3%</span>
+            </div>
+          </div>
+          <div class="bg-dark p-3 rounded-lg border border-primary/20">
+            <div class="text-text-secondary text-xs">患者信息推送</div>
+            <div class="text-2xl font-bold mt-1 text-secondary">874</div>
+            <div class="flex items-center text-xs text-text-secondary mt-1">
+              <i class="fa fa-arrow-up text-success mr-1"></i>
+              <span>8.7%</span>
+            </div>
+          </div>
+          <div class="bg-dark p-3 rounded-lg border border-primary/20">
+            <div class="text-text-secondary text-xs">处理响应率</div>
+            <div class="text-2xl font-bold mt-1 text-accent">92.5%</div>
+            <div class="flex items-center text-xs text-text-secondary mt-1">
+              <i class="fa fa-arrow-up text-success mr-1"></i>
+              <span>3.2%</span>
+            </div>
+          </div>
+          <div class="bg-dark p-3 rounded-lg border border-primary/20">
+            <div class="text-text-secondary text-xs">平均响应时间</div>
+            <div class="text-2xl font-bold mt-1 text-warning">28分钟</div>
+            <div class="flex items-center text-xs text-text-secondary mt-1">
+              <i class="fa fa-arrow-down text-success mr-1"></i>
+              <span>5.1%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 数据统计与分析 -->
+      <div class="bg-dark-light rounded-xl p-4 card-shadow flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold">数据统计与分析</h2>
+          <button class="text-primary text-sm flex items-center">
+            <span>导出报告</span>
+            <i class="fa fa-download ml-1"></i>
+          </button>
+        </div>
+        
+        <!-- 公卫系统对接情况 -->
+        <div class="bg-dark p-3 rounded-lg border border-primary/20 mb-4">
+          <h3 class="text-lg font-medium mb-3">公卫系统对接情况</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-success mr-2"></div>
+              <span>高血压管理系统</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-success mr-2"></div>
+              <span>糖尿病管理系统</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-success mr-2"></div>
+              <span>儿童保健系统</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-success mr-2"></div>
+              <span>孕产妇管理系统</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-warning mr-2"></div>
+              <span>计划免疫系统</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full bg-danger mr-2"></div>
+              <span>精神卫生系统</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 系统性能指标 -->
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">系统响应时间</span>
+              <span class="text-success">0.8s</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-success h-full rounded-full" style="width: 90%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">数据处理量</span>
+              <span class="text-primary">12,587条/日</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-primary h-full rounded-full" style="width: 75%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">接口调用成功率</span>
+              <span class="text-success">99.2%</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-success h-full rounded-full" style="width: 99.2%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-text-secondary">系统可用性</span>
+              <span class="text-success">99.9%</span>
+            </div>
+            <div class="w-full bg-dark-light h-2 rounded-full overflow-hidden">
+              <div class="bg-success h-full rounded-full" style="width: 99.9%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // 更新当前时间
+    function updateTime() {
+      const now = new Date();
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('current-time').textContent = now.toLocaleString('zh-CN', options);
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // 图表通用配置
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#86909C',
+            font: {
+              size: 11
+            }
+          }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          backgroundColor: 'rgba(10, 17, 35, 0.8)',
+          borderColor: 'rgba(22, 93, 255, 0.5)',
+          borderWidth: 1,
+          padding: 10,
+          titleColor: '#E5E6EB',
+          bodyColor: '#E5E6EB',
+          titleFont: {
+            size: 13,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 12
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          },
+          ticks: {
+            color: '#86909C',
+            font: {
+              size: 10
+            }
+          }
+        },
+        y: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          },
+          ticks: {
+            color: '#86909C',
+            font: {
+              size: 10
+            }
+          }
+        }
+      },
+      animation: {
+        duration: 1500,
+        easing: 'easeOutQuart'
+      }
+    };
+
+    // 慢性病趋势图
+    const chronicDiseaseCtx = document.getElementById('chronic-disease-trend-chart').getContext('2d');
+    const chronicDiseaseChart = new Chart(chronicDiseaseCtx, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+          {
+            label: '高血压患者',
+            data: [5200, 5350, 5480, 5590, 5650, 5689],
+            borderColor: 'rgba(59, 130, 246, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: '糖尿病患者',
+            data: [3020, 3100, 3180, 3210, 3240, 3254],
+            borderColor: 'rgba(15, 198, 194, 1)',
+            backgroundColor: 'rgba(15, 198, 194, 0.1)',
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        ...chartDefaults,
+        plugins: {
+          ...chartDefaults.plugins,
+          tooltip: {
+            ...chartDefaults.plugins.tooltip,
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${context.raw}人`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // 业务联动统计图表
+    const businessLinkageCtx = document.getElementById('business-linkage-chart').getContext('2d');
+    const businessLinkageChart = new Chart(businessLinkageCtx, {
+      type: 'bar',
+      data: {
+        labels: ['智能提醒', '信息推送', '响应处理', '数据交换'],
+        datasets: [
+          {
+            label: '本月',
+            data: [320, 250, 290, 310],
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: 'rgba(59, 130, 246, 1)',
+            borderWidth: 1
+          },
+          {
+            label: '上月',
+            data: [280, 220, 250, 270],
+            backgroundColor: 'rgba(114, 46, 209, 0.7)',
+            borderColor: 'rgba(114, 46, 209, 1)',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        ...chartDefaults,
+        barPercentage: 0.6,
+        categoryPercentage: 0.7
+      }
+    });
+
+    // 数据刷新动画效果
+    document.querySelector('button').addEventListener('click', function() {
+      this.classList.add('animate-pulse');
+      
+      // 模拟数据刷新
+      setTimeout(() => {
+        // 更新一些随机数据
+        chronicDiseaseChart.data.datasets[0].data = chronicDiseaseChart.data.datasets[0].data.map(value => value + Math.floor(Math.random() * 50) - 20);
+        chronicDiseaseChart.data.datasets[1].data = chronicDiseaseChart.data.datasets[1].data.map(value => value + Math.floor(Math.random() * 30) - 10);
+        chronicDiseaseChart.update();
+        
+        businessLinkageChart.data.datasets[0].data = businessLinkageChart.data.datasets[0].data.map(value => value + Math.floor(Math.random() * 30) - 15);
+        businessLinkageChart.update();
+        
+        this.classList.remove('animate-pulse');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>  
